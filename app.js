@@ -1,41 +1,90 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const cors = require('cors')
+const nodemailer = require('nodemailer');
+const bodyParser = require("body-parser");
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+//const hostname = '127.0.0.1';
+const app = express();
+app.use(cors({ origin: "*" }));
+app.use(bodyParser.json());
 
-var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+const port = 3000;
+app.listen(port, (req, res) => {
+    console.log(`Server running at port : ${port}/`);
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.get("/", (req, res) => {
+    res.send("<h1>Pesalamah !</h1>");
+    sendmail();
+})
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+app.post("/sendmail", (req, res) => {
+    console.log("Request Came");
+    let User = req.body;
+    console.log("User "+User.mail);
+    console.log("working");
+    sendmail(User, info => {
+       // console.log(`The Mail has been Send and the id is ${info.messageId}`);
+        console.log("info " + info);
+        console.log("user "+ User);
+        res.send(info);
+    })
+})
 
-module.exports = app;
+async function sendmail(user) {
+
+    //Step 1
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'noreplypesalamah@gmail.com',
+            pass: 'vennila34'
+        }
+    });
+
+    //Step 2 
+    let mailOptions = {
+        from: 'noreplypesalamah@gmail.com',
+        to: user.mail,
+        subject: user.subject,
+        html: `<html>
+                <head>
+                 <title>Your Token</title>
+                    <style>
+                    h1{
+                        color:#a7c957;
+                        font-size:35px;
+                    }
+                    h2{
+                        color:#345a09;
+                    }
+                    div{
+                        color:#345a09;
+                    }
+                    </style>
+                </head>
+                  <body style="border:5px solid #345a09;text-align:center;border-radius: 12px;">
+                    <h2 style="padding-top: 20px;font-size: 25px;">Welcome to Pesalamah!</h2>
+                    <p style="color:#345a09;">Your have successfully created account.<br/>Please enter the verification code to verify your gmail.<br/>And be ready to have fun.</p>
+                    <div>----------------------------------------------------------------------------</div>
+                    <div>
+                        <h1>${user.otp}<h1>
+                    </div>
+                    <div>----------------------------------------------------------------------------</div>    
+                    <h5 style="color:#345a09;">Thanks you for choosing Pesalamah!</h5>
+                    <h6 style="color:#345a09;">Pesalamah! Messenger</h6>
+                  </body>
+                </html>`
+    }
+    //brindhaalbertkennady@gmail.com
+    //Step 3
+
+    transporter.sendMail(mailOptions, function (err, data) {
+        if (err) {
+            console.log("Error Occurs", err);
+        } else {
+            console.log("Mail has been Sent");
+        }
+    });
+}
+
