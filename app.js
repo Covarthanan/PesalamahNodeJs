@@ -5,13 +5,15 @@ const bodyParser = require("body-parser");
 
 //const hostname = '127.0.0.1';
 const app = express();
-app.use(cors({ origin: "*" }));
+//app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
+app.use(cors());
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Origin', "*");
     res.header('Access-Control-Allow-Methods','GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
+     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 })
 
